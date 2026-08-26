@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kirim Pesan WhatsApp Kilat</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Configuration for Custom Theme / Dark Mode -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              darkBg: '#0b141a',
+              darkCard: '#111b21',
+              darkInput: '#2a3942',
+              darkHeader: '#202c33'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons CDN (Menggunakan UNPKG yang stabil untuk GitHub Pages) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Custom Scrollbar for better aesthetics */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+    /* Smooth transitions */
+    .transition-all-custom {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-brand-darkBg text-gray-800 dark:text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+
+  <!-- Header Banner -->
+  <header class="bg-brand-600 dark:bg-brand-darkHeader text-white shadow-lg sticky top-0 z-40 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white p-2 rounded-xl text-brand-600 shadow-md flex items-center justify-center">
+          <i data-lucide="message-square" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">WA INSTAN</h1>
+          <p class="text-xs text-brand-100 dark:text-gray-400">Akses Kontak dan Kirim Pesan Cepat</p>
+        </div>
+      </div>
+      
+      <!-- Theme & Action Toggles -->
+      <div class="flex items-center space-x-2">
+        <!--
+          PERHATIAN KEAMANAN: link di bawah ini adalah link EDIT ke Google Sheet.
+          Kalau file HTML ini bisa diakses publik (mis. di-hosting di GitHub Pages)
+          DAN sheet-nya di-share dengan akses "siapa saja yang punya link bisa mengedit",
+          maka SEMUA orang yang membuka aplikasi ini bisa mengedit data kontak.
+          Cek Google Sheet > tombol "Share" > pastikan aksesnya "Viewer" untuk publik,
+          atau batasi hanya ke akun tertentu, sebelum aplikasi ini dipakai secara luas.
+        -->
+        <!-- Google Sheet Button (Dipastikan terlihat dengan background semi-transparent hover) -->
+        <a 
+          href="https://docs.google.com/spreadsheets/d/1RsZJ_flu3AYs0aCR-03fLodWLAuuXdyrlY6WbO-v6dc/edit" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="p-2 bg-brand-700 dark:bg-brand-darkInput hover:bg-brand-800 dark:hover:bg-gray-700 rounded-lg transition-all text-white flex items-center justify-center gap-1.5 px-3" 
+          title="Buka Google Sheet Data"
+        >
+          <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-100"></i>
+          <span class="text-xs font-semibold hidden sm:inline">Google Sheet</span>
+        </a>
+        <button id="themeToggle" class="p-2 hover:bg-brand-700 dark:hover:bg-brand-darkInput rounded-lg transition-colors" title="Ubah Tema">
+          <i data-lucide="sun" id="sunIcon" class="w-5 h-5 hidden"></i>
+          <i data-lucide="moon" id="moonIcon" class="w-5 h-5"></i>
+        </button>
+        <button id="refreshDataBtn" class="p-2 hover:bg-brand-700 dark:hover:bg-brand-darkInput rounded-lg transition-colors" title="Perbarui Data">
+          <i data-lucide="rotate-cw" id="refreshIcon" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-grow max-w-6xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT PANEL: Stats, Tabs & Actions (4 Columns) -->
+    <section class="lg:col-span-4 flex flex-col space-y-6">
+      
+      <!-- Statistics Dashboard -->
+      <div class="bg-white dark:bg-brand-darkCard p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 transition-colors">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Statistik Kontak</h2>
+          <!-- Google Sheet Link -->
+          <a 
+            href="https://docs.google.com/spreadsheets/d/1RsZJ_flu3AYs0aCR-03fLodWLAuuXdyrlY6WbO-v6dc/edit" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="text-xs text-brand-600 dark:text-brand-500 hover:underline flex items-center gap-1 font-bold"
+            title="Buka Spreadsheet di Tab Baru"
+          >
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Edit Sheet
+          </a>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-gray-50 dark:bg-brand-darkInput/40 p-3 rounded-xl text-center">
+            <span class="block text-2xl font-bold text-brand-600 dark:text-brand-500" id="statTotal">0</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400">Total</span>
+          </div>
+          <div class="bg-gray-50 dark:bg-brand-darkInput/40 p-3 rounded-xl text-center">
+            <span class="block text-2xl font-bold text-blue-600 dark:text-blue-400" id="statGroups">0</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400">Grup</span>
+          </div>
+          <div class="bg-gray-50 dark:bg-brand-darkInput/40 p-3 rounded-xl text-center">
+            <span class="block text-2xl font-bold text-amber-500" id="statFavs">0</span>
+            <span class="text-[10px] text-gray-500 dark:text-gray-400">Favorit</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Tabs Selection -->
+      <div class="bg-white dark:bg-brand-darkCard p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 transition-colors">
+        
+        <!-- Tab Buttons -->
+        <div class="flex bg-gray-100 dark:bg-brand-darkInput p-1 rounded-xl mb-4">
+          <button 
+            id="tabDirectBtn" 
+            class="flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 bg-white dark:bg-brand-darkCard text-brand-600 dark:text-white shadow-sm"
+          >
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            <span>Kirim Cepat</span>
+          </button>
+          <button 
+            id="tabBroadcastBtn" 
+            class="flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
+          >
+            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+            <span>Antrean Broadcast</span>
+          </button>
+        </div>
+
+        <!-- TAB CONTENT 1: Quick Direct Send -->
+        <div id="tabDirectContent" class="space-y-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+            Kirim pesan ke nomor baru tanpa harus menyimpan nomornya di daftar kontak telepon Anda terlebih dahulu.
+          </p>
+          
+          <form id="directSendForm" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1" for="directPhone">Nomor WhatsApp</label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium select-none">+62</span>
+                <input 
+                  type="tel" 
+                  id="directPhone" 
+                  placeholder="81234567890" 
+                  required
+                  class="w-full pl-12 pr-4 py-2.5 bg-gray-50 dark:bg-brand-darkInput border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition-all"
+                >
+              </div>
+              <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Masukkan angka tanpa spasi, tanda strip (-), atau angka 0 di depan.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1" for="directMessage">Pesan (Opsional)</label>
+              <textarea 
+                id="directMessage" 
+                rows="3" 
+                placeholder="Halo, saya ingin menanyakan..."
+                class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-brand-darkInput border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition-all resize-none"
+              ></textarea>
+            </div>
+
+            <button 
+              type="submit"
+              class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-md shadow-brand-500/10 flex items-center justify-center space-x-2 transition-all duration-200 active:scale-[0.98]"
+            >
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>Buka WhatsApp</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- TAB CONTENT 2: Antrean Broadcast (Semi-Manual) -->
+        <div id="tabBroadcastContent" class="hidden space-y-4">
+          
+          <!-- STATE 2.1: SETUP MODE -->
+          <div id="bcSetupArea" class="space-y-4">
+            <div class="bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 p-3 rounded-xl border border-amber-200/50 dark:border-amber-900/30 text-xs leading-relaxed flex items-start space-x-2">
+              <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+              <span>
+                <strong>Cara Kerja:</strong> Centang kontak di daftar kanan, tulis pesan, lalu mulai. Aplikasi akan membantu Anda membuka obrolan satu per satu secara berurutan dan aman dari blokir.
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Template Pesan Broadcast
+              </label>
+              <textarea 
+                id="broadcastMessage" 
+                rows="4" 
+                placeholder="Halo {nama}, kami ingin menginfokan..."
+                class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-brand-darkInput border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition-all resize-none"
+              ></textarea>
+              <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                Gunakan tag <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-brand-600 font-bold">{nama}</code> untuk menyapa nama kontak secara dinamis.
+              </p>
+            </div>
+
+            <div class="p-3 bg-gray-50 dark:bg-brand-darkInput/40 rounded-xl flex items-center justify-between text-xs">
+              <span class="text-gray-500 dark:text-gray-400">Kontak Terpilih:</span>
+              <span id="bcSelectedCount" class="font-bold text-brand-600 dark:text-brand-500 bg-brand-50 dark:bg-brand-darkInput px-2.5 py-1 rounded-lg">0 Kontak</span>
+            </div>
+
+            <button 
+              id="startBroadcastBtn"
+              disabled
+              class="w-full bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-600 text-white font-medium py-2.5 px-4 rounded-xl shadow-md flex items-center justify-center space-x-2 transition-all"
+            >
+              <i data-lucide="play-circle" class="w-4 h-4"></i>
+              <span>Mulai Antrean Broadcast</span>
+            </button>
+          </div>
+
+          <!-- STATE 2.2: ACTIVE QUEUE PLAYBACK -->
+          <div id="bcActiveArea" class="hidden space-y-4">
+            <div class="bg-brand-50 dark:bg-brand-darkInput/40 p-4 rounded-xl border border-brand-100 dark:border-brand-900/30">
+              <div class="flex justify-between text-xs mb-1 font-semibold text-brand-700 dark:text-brand-400">
+                <span>Progres Antrean</span>
+                <span id="bcProgressText">0 / 0</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden">
+                <div id="bcProgressBar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+              </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 dark:bg-brand-darkInput/60 border border-gray-100 dark:border-gray-800 rounded-xl space-y-2">
+              <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Tujuan Berikutnya</span>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 id="bcTargetName" class="font-bold text-sm text-gray-800 dark:text-white">-</h4>
+                  <p id="bcTargetGroup" class="text-xs text-gray-500 dark:text-gray-400">-</p>
+                </div>
+                <span class="text-xs bg-brand-100 dark:bg-brand-darkInput text-brand-700 dark:text-brand-400 px-2.5 py-1 rounded-full font-semibold" id="bcTargetIndex">#1</span>
+              </div>
+              <div class="pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
+                <span class="text-[10px] text-gray-400 block mb-1">Pratinjau Pesan:</span>
+                <p id="bcMessagePreview" class="text-xs italic bg-white dark:bg-brand-darkCard p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-300 max-h-24 overflow-y-auto whitespace-pre-wrap"></p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                id="bcSkipBtn"
+                class="bg-gray-100 dark:bg-brand-darkInput hover:bg-gray-200 dark:hover:bg-brand-darkHeader text-gray-700 dark:text-gray-300 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1"
+              >
+                <i data-lucide="skip-forward" class="w-4 h-4"></i>
+                <span>Lewati</span>
+              </button>
+              <button 
+                id="bcSendBtn"
+                class="bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-md shadow-brand-500/10"
+              >
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+                <span>Buka Chat & Lanjut</span>
+              </button>
+            </div>
+
+            <button 
+              id="bcStopBtn"
+              class="w-full bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 font-medium py-2 px-4 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all"
+            >
+              <i data-lucide="square" class="w-3.5 h-3.5"></i>
+              <span>Batalkan Sesi Broadcast</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL: Live Search & Contacts List (8 Columns) -->
+    <section class="lg:col-span-8 flex flex-col space-y-4">
+      
+      <!-- Filters and Search Toolbar -->
+      <div class="bg-white dark:bg-brand-darkCard p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800/50 flex flex-col md:flex-row gap-3 items-center justify-between transition-colors">
+        
+        <!-- Search Input -->
+        <div class="relative w-full md:flex-1">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </span>
+          <input 
+            type="text" 
+            id="cari" 
+            placeholder="Cari nama atau nomor kontak..." 
+            class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-brand-darkInput border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition-all"
+          >
+          <button 
+            id="clearSearch" 
+            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-white hidden"
+            title="Bersihkan Pencarian"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Filter Dropdowns & Utilities -->
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <div class="relative flex-1 md:flex-none">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+              <i data-lucide="filter" class="w-4 h-4"></i>
+            </span>
+            <select 
+              id="grup" 
+              class="w-full md:w-48 pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-brand-darkInput border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition-all appearance-none cursor-pointer"
+            >
+              <option value="">Semua Grup</option>
+            </select>
+          </div>
+          
+          <button 
+            id="onlyFavoritesBtn" 
+            class="p-2.5 bg-gray-50 dark:bg-brand-darkInput border border-gray-200 dark:border-gray-700 rounded-xl hover:text-amber-500 dark:hover:text-amber-400 transition-colors flex items-center justify-center"
+            title="Tampilkan Favorit Saja"
+          >
+            <i data-lucide="star" id="favFilterIcon" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Live Loading Indicator (Shimmer/Skeleton Effect) -->
+      <div id="shimmerLoader" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 hidden">
+        <!-- Loop Skeletons -->
+        <div class="bg-white dark:bg-brand-darkCard p-4 rounded-xl border border-gray-100 dark:border-gray-800 animate-pulse flex items-center justify-between">
+          <div class="space-y-2 flex-1 mr-4">
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          </div>
+          <div class="h-9 bg-gray-200 dark:bg-gray-700 rounded-lg w-24"></div>
+        </div>
+      </div>
+
+      <!-- No Connection / Error Alert Panel -->
+      <div id="errorPanel" class="bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50 p-4 rounded-xl hidden flex items-start space-x-3">
+        <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 shrink-0"></i>
+        <div class="flex-grow">
+          <h4 class="font-bold text-sm">Gagal Sinkronisasi Real-Time</h4>
+          <p class="text-xs mt-1">Sistem gagal mengambil data segar dari server. Anda sekarang berselancar menggunakan data lokal (offline cache).</p>
+        </div>
+        <button id="closeErrorBtn" class="text-red-400 hover:text-red-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Multi-select / Broadcast Action Bar (Visible in Broadcast Mode) -->
+      <div id="broadcastSelectorBar" class="hidden bg-white dark:bg-brand-darkCard p-3 rounded-2xl border border-brand-100 dark:border-brand-900/30 flex items-center justify-between transition-colors">
+        <div class="flex items-center space-x-2">
+          <button 
+            id="selectAllFilteredBtn" 
+            class="text-xs font-semibold text-brand-600 dark:text-brand-500 hover:underline flex items-center space-x-1"
+          >
+            <i data-lucide="check-square" class="w-4 h-4"></i>
+            <span>Pilih Semua yang Terlihat</span>
+          </button>
+          <span class="text-gray-300 dark:text-gray-700">|</span>
+          <button 
+            id="clearSelectedBtn" 
+            class="text-xs font-semibold text-red-500 hover:underline flex items-center space-x-1"
+          >
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Hapus Pilihan</span>
+          </button>
+        </div>
+        <span class="text-xs text-gray-500 dark:text-gray-400" id="selectionStatusText">0 terpilih</span>
+      </div>
+
+      <!-- Active Filter Badge Info -->
+      <div id="activeFilterBadge" class="hidden flex items-center justify-between bg-brand-50 dark:bg-brand-darkInput/40 text-brand-700 dark:text-brand-400 px-4 py-2.5 rounded-xl border border-brand-100 dark:border-brand-900/30 text-xs">
+        <span id="activeFilterText">Menampilkan hasil saringan</span>
+        <button id="resetFilters" class="font-semibold underline hover:text-brand-900 flex items-center gap-1">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Filter
+        </button>
+      </div>
+
+      <!-- Contacts Render Container -->
+      <div id="list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <!-- Rendered items go here -->
+      </div>
+
+      <!-- Empty state placeholder -->
+      <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+        <div class="bg-gray-100 dark:bg-brand-darkInput p-4 rounded-full text-gray-400 dark:text-gray-500 mb-3">
+          <i data-lucide="search-code" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-base font-semibold text-gray-700 dark:text-gray-300">Kontak Tidak Ditemukan</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm">Silakan ubah kata kunci pencarian Anda atau atur kembali filter grup di atas.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer Area -->
+  <footer class="bg-white dark:bg-brand-darkCard border-t border-gray-100 dark:border-gray-800 text-center py-6 text-xs text-gray-400 dark:text-gray-500 transition-colors mt-auto">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>&copy; 2026 Launcher WhatsApp Premium. Hak Cipta Dilindungi.</div>
+      <div class="flex items-center space-x-3">
+        <span class="flex items-center gap-1 text-emerald-500"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sinkronisasi Cloud Aktif</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom Floating Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+
+  <!-- Main JavaScript Logic -->
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwTHHXSqtYTsl8kb9usGrSG1rI4sDAmdta5KGGBSeMi8qGkNd3lqX-S2kcmV42MQKaP6A/exec';
+
+    // Ambil ID unik kontak: pakai kolom ID asli dari sheet (dikirim sebagai c.id),
+    // fallback ke nomor HP, lalu ke "nama|grup" kalau keduanya tidak ada.
+    function getContactId(c) {
+      if (c.id !== undefined && c.id !== null && c.id !== '') return String(c.id);
+      if (c.nomor) return c.nomor;
+      if (c.url) {
+        const match = c.url.match(/(?:phone|send\/?\?phone)=([0-9]+)/);
+        if (match && match[1]) return match[1];
+      }
+      return `${c.nama}|${c.grup || ''}`;
+    }
+
+    // Restore sesi broadcast yang belum selesai (misal kalau tab sempat ter-refresh)
+    let savedBcSession = null;
+    try {
+      savedBcSession = JSON.parse(localStorage.getItem('wa_bc_session') || 'null');
+    } catch (e) {
+      savedBcSession = null;
+    }
+
+    // Application State
+    let state = {
+      contacts: [],
+      groups: [],
+      favorites: JSON.parse(localStorage.getItem('wa_launcher_favorites') || '[]'), // array of contact id
+      filterOnlyFavorites: false,
+      theme: localStorage.getItem('wa_theme') || 'light',
+      
+      // Broadcast System State
+      activeLeftTab: 'direct', // 'direct' or 'broadcast'
+      selectedContacts: (savedBcSession && savedBcSession.selectedContacts) || [], // array of contact id
+      broadcastQueue: (savedBcSession && savedBcSession.broadcastQueue) || [], // active queue of contact objects
+      broadcastIndex: (savedBcSession && savedBcSession.broadcastIndex) || 0, // current sending index
+      broadcastMsgTemplate: localStorage.getItem('wa_bc_template') || 'Halo {nama}, ',
+      // Log kontak yang sudah dikirimi pesan: { [contactId]: isoTimestamp }
+      sentLog: JSON.parse(localStorage.getItem('wa_sent_log') || '{}')
+    };
+
+    // Simpan sesi broadcast aktif ke localStorage supaya tidak hilang kalau ter-refresh
+    function persistBroadcastSession() {
+      if (state.broadcastQueue.length > 0 && state.broadcastIndex < state.broadcastQueue.length) {
+        localStorage.setItem('wa_bc_session', JSON.stringify({
+          selectedContacts: state.selectedContacts,
+          broadcastQueue: state.broadcastQueue,
+          broadcastIndex: state.broadcastIndex
+        }));
+      } else {
+        localStorage.removeItem('wa_bc_session');
+      }
+    }
+
+    function markContactSent(contactId) {
+      state.sentLog[contactId] = new Date().toISOString();
+      localStorage.setItem('wa_sent_log', JSON.stringify(state.sentLog));
+    }
+
+    // Migrasi data favorit lama: sebelumnya favorit disimpan pakai nama kontak sebagai key,
+    // sekarang pakai ID. Fungsi ini dipanggil sekali setelah state.contacts termuat, untuk
+    // mencocokkan entri lama (nama) ke ID yang sesuai, supaya favorit lama tidak "hilang".
+    function migrateFavorites() {
+      if (!state.contacts.length || !state.favorites.length) return;
+      let changed = false;
+      const migrated = state.favorites.map(fav => {
+        // Sudah cocok dengan ID kontak yang ada -> biarkan
+        if (state.contacts.some(c => getContactId(c) === fav)) return fav;
+        // Coba cocokkan sebagai format lama (nama)
+        const match = state.contacts.find(c => c.nama === fav);
+        if (match) {
+          changed = true;
+          return getContactId(match);
+        }
+        return fav; // tidak ketemu (mis. kontak nonaktif/terhapus), biarkan apa adanya
+      });
+      state.favorites = [...new Set(migrated)];
+      if (changed) {
+        localStorage.setItem('wa_launcher_favorites', JSON.stringify(state.favorites));
+      }
+    }
+
+    // Kirim catatan "pesan sudah dibuka/dikirim" ke sheet Log lewat Apps Script.
+    // Fire-and-forget: kalau gagal (mis. offline), cukup dicatat di console,
+    // badge "Terkirim hari ini" tetap jalan dari localStorage (markContactSent).
+    function logSentToSheet(contactId, nama, nomor) {
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'logSent', id: contactId, nama, nomor })
+      }).catch(err => {
+        console.warn('Gagal mencatat log kirim ke Sheet:', err);
+      });
+    }
+
+    // DOM Elements
+    const elements = {
+      cari: document.getElementById('cari'),
+      clearSearch: document.getElementById('clearSearch'),
+      grup: document.getElementById('grup'),
+      list: document.getElementById('list'),
+      shimmerLoader: document.getElementById('shimmerLoader'),
+      errorPanel: document.getElementById('errorPanel'),
+      closeErrorBtn: document.getElementById('closeErrorBtn'),
+      
+      // Stats
+      statTotal: document.getElementById('statTotal'),
+      statGroups: document.getElementById('statGroups'),
+      statFavs: document.getElementById('statFavs'),
+      
+      // Tabs
+      tabDirectBtn: document.getElementById('tabDirectBtn'),
+      tabBroadcastBtn: document.getElementById('tabBroadcastBtn'),
+      tabDirectContent: document.getElementById('tabDirectContent'),
+      tabBroadcastContent: document.getElementById('tabBroadcastContent'),
+      
+      // Direct Send
+      directSendForm: document.getElementById('directSendForm'),
+      directPhone: document.getElementById('directPhone'),
+      directMessage: document.getElementById('directMessage'),
+      
+      // Broadcast DOM
+      bcSetupArea: document.getElementById('bcSetupArea'),
+      bcActiveArea: document.getElementById('bcActiveArea'),
+      broadcastMessage: document.getElementById('broadcastMessage'),
+      bcSelectedCount: document.getElementById('bcSelectedCount'),
+      startBroadcastBtn: document.getElementById('startBroadcastBtn'),
+      bcProgressText: document.getElementById('bcProgressText'),
+      bcProgressBar: document.getElementById('bcProgressBar'),
+      bcTargetName: document.getElementById('bcTargetName'),
+      bcTargetGroup: document.getElementById('bcTargetGroup'),
+      bcTargetIndex: document.getElementById('bcTargetIndex'),
+      bcMessagePreview: document.getElementById('bcMessagePreview'),
+      bcSkipBtn: document.getElementById('bcSkipBtn'),
+      bcSendBtn: document.getElementById('bcSendBtn'),
+      bcStopBtn: document.getElementById('bcStopBtn'),
+      broadcastSelectorBar: document.getElementById('broadcastSelectorBar'),
+      selectAllFilteredBtn: document.getElementById('selectAllFilteredBtn'),
+      clearSelectedBtn: document.getElementById('clearSelectedBtn'),
+      selectionStatusText: document.getElementById('selectionStatusText'),
+      
+      // Utilities
+      themeToggle: document.getElementById('themeToggle'),
+      sunIcon: document.getElementById('sunIcon'),
+      moonIcon: document.getElementById('moonIcon'),
+      onlyFavoritesBtn: document.getElementById('onlyFavoritesBtn'),
+      favFilterIcon: document.getElementById('favFilterIcon'),
+      activeFilterBadge: document.getElementById('activeFilterBadge'),
+      activeFilterText: document.getElementById('activeFilterText'),
+      resetFilters: document.getElementById('resetFilters'),
+      emptyState: document.getElementById('emptyState'),
+      refreshDataBtn: document.getElementById('refreshDataBtn'),
+      refreshIcon: document.getElementById('refreshIcon'),
+      toastContainer: document.getElementById('toastContainer')
+    };
+
+    // Apply Theme on load
+    function initTheme() {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (state.theme === 'dark' || (state.theme === 'auto' && prefersDark)) {
+        document.documentElement.classList.add('dark');
+        elements.sunIcon.classList.remove('hidden');
+        elements.moonIcon.classList.add('hidden');
+      } else {
+        document.documentElement.classList.remove('dark');
+        elements.sunIcon.classList.add('hidden');
+        elements.moonIcon.classList.remove('hidden');
+      }
+    }
+
+    elements.themeToggle.addEventListener('click', () => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        state.theme = 'light';
+        elements.sunIcon.classList.add('hidden');
+        elements.moonIcon.classList.remove('hidden');
+      } else {
+        document.documentElement.classList.add('dark');
+        state.theme = 'dark';
+        elements.sunIcon.classList.remove('hidden');
+        elements.moonIcon.classList.add('hidden');
+      }
+      localStorage.setItem('wa_theme', state.theme);
+      showToast('Tema berhasil diubah', 'info');
+    });
+
+    // Custom Toast Notification
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `p-4 rounded-xl shadow-lg flex items-center space-x-3 pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 text-white text-sm font-medium`;
+      
+      let icon = 'info';
+      if (type === 'success') {
+        toast.className += ' bg-emerald-600 dark:bg-emerald-700';
+        icon = 'check-circle';
+      } else if (type === 'error') {
+        toast.className += ' bg-red-600 dark:bg-red-700';
+        icon = 'alert-octagon';
+      } else {
+        toast.className += ' bg-gray-800 dark:bg-gray-700';
+        icon = 'info';
+      }
+
+      toast.innerHTML = `
+        <i data-lucide="${icon}" class="w-5 h-5 shrink-0"></i>
+        <span>${message}</span>
+      `;
+      
+      elements.toastContainer.appendChild(toast);
+      lucide.createIcons();
+
+      // Trigger animation
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      // Hide and destroy
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3500);
+    }
+
+    // Toggle Favorite Local Storage (key: contact id, bukan nama, agar nama kembar tidak tertukar)
+    function toggleFavorite(contactId, event) {
+      if (event) event.stopPropagation(); // prevent card selection trigger in broadcast mode
+      const idx = state.favorites.indexOf(contactId);
+      if (idx > -1) {
+        state.favorites.splice(idx, 1);
+        showToast(`Dihapus dari Favorit`, 'info');
+      } else {
+        state.favorites.push(contactId);
+        showToast(`Disimpan ke Favorit`, 'success');
+      }
+      localStorage.setItem('wa_launcher_favorites', JSON.stringify(state.favorites));
+      render();
+    }
+
+    // Copying to Clipboard Utility
+    function copyLink(url, event) {
+      if (event) event.stopPropagation();
+      const el = document.createElement('textarea');
+      el.value = url;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast('Tautan WhatsApp berhasil disalin!');
+        } else {
+          showToast('Gagal menyalin tautan', 'error');
+        }
+      } catch (err) {
+        showToast('Gagal menyalin tautan', 'error');
+      }
+      document.body.removeChild(el);
+    }
+
+    // Load Data with LocalStorage Caching
+    async function loadData(isRefresh = false) {
+      elements.shimmerLoader.classList.remove('hidden');
+      elements.list.innerHTML = '';
+      elements.errorPanel.classList.add('hidden');
+      
+      if (isRefresh) {
+        elements.refreshIcon.classList.add('animate-spin');
+      }
+
+      const cachedContacts = localStorage.getItem('wa_cached_contacts');
+      const cachedGroups = localStorage.getItem('wa_cached_groups');
+
+      if (cachedContacts && cachedGroups && !isRefresh) {
+        state.contacts = JSON.parse(cachedContacts);
+        state.groups = JSON.parse(cachedGroups);
+        migrateFavorites();
+        populateGroupsDropdown();
+        render();
+        elements.shimmerLoader.classList.add('hidden');
+      }
+
+      try {
+        const response = await fetch(`${API_URL}?action=getData`);
+        if (!response.ok) throw new Error('Network error response');
+        
+        const data = await response.json();
+        if (data.success) {
+          state.contacts = data.contacts || [];
+          state.groups = data.groups || [];
+          
+          localStorage.setItem('wa_cached_contacts', JSON.stringify(state.contacts));
+          localStorage.setItem('wa_cached_groups', JSON.stringify(state.groups));
+          
+          migrateFavorites();
+          populateGroupsDropdown();
+          render();
+        } else {
+          throw new Error('Server returned false success status');
+        }
+      } catch (error) {
+        console.error('Error fetching API:', error);
+        elements.errorPanel.classList.remove('hidden');
+        
+        if (!state.contacts.length) {
+          elements.list.innerHTML = `
+            <div class="col-span-full bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-400 p-6 rounded-2xl border border-red-200 dark:border-red-900/50 text-center">
+              <i data-lucide="cloud-off" class="w-10 h-10 mx-auto text-red-500 mb-2"></i>
+              <p class="font-bold">Sambungan Gagal</p>
+              <p class="text-xs mt-1">Kami tidak dapat memuat data. Silakan periksa koneksi internet Anda atau coba perbarui data.</p>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      } finally {
+        elements.shimmerLoader.classList.add('hidden');
+        elements.refreshIcon.classList.remove('animate-spin');
+      }
+    }
+
+    // Populate dynamic groups select input
+    function populateGroupsDropdown() {
+      elements.grup.innerHTML = '<option value="">Semua Grup</option>';
+      state.groups.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.nama;
+        option.textContent = item.nama;
+        elements.grup.appendChild(option);
+      });
+    }
+
+    // Toggle Left Tabs Layout
+    function switchLeftTab(tabName) {
+      state.activeLeftTab = tabName;
+      if (tabName === 'direct') {
+        elements.tabDirectBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 bg-white dark:bg-brand-darkCard text-brand-600 dark:text-white shadow-sm";
+        elements.tabBroadcastBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white";
+        elements.tabDirectContent.classList.remove('hidden');
+        elements.tabBroadcastContent.classList.add('hidden');
+        elements.broadcastSelectorBar.classList.add('hidden');
+      } else {
+        elements.tabBroadcastBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 bg-white dark:bg-brand-darkCard text-brand-600 dark:text-white shadow-sm";
+        elements.tabDirectBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white";
+        elements.tabBroadcastContent.classList.remove('hidden');
+        elements.tabDirectContent.classList.add('hidden');
+        elements.broadcastSelectorBar.classList.remove('hidden');
+      }
+      render();
+    }
+
+    elements.tabDirectBtn.addEventListener('click', () => switchLeftTab('direct'));
+    elements.tabBroadcastBtn.addEventListener('click', () => switchLeftTab('broadcast'));
+
+    // Toggle broadcast selection (key: contact id)
+    function toggleSelectContact(contactId) {
+      const idx = state.selectedContacts.indexOf(contactId);
+      if (idx > -1) {
+        state.selectedContacts.splice(idx, 1);
+      } else {
+        state.selectedContacts.push(contactId);
+      }
+      updateBroadcastSelectionDOM();
+      render();
+    }
+
+    // Update selection count badges
+    function updateBroadcastSelectionDOM() {
+      const count = state.selectedContacts.length;
+      elements.bcSelectedCount.textContent = `${count} Kontak`;
+      elements.selectionStatusText.textContent = `${count} terpilih`;
+      
+      // Toggle play button state
+      if (count > 0 && elements.broadcastMessage.value.trim() !== '') {
+        elements.startBroadcastBtn.removeAttribute('disabled');
+      } else {
+        elements.startBroadcastBtn.setAttribute('disabled', 'true');
+      }
+    }
+
+    elements.broadcastMessage.addEventListener('input', (e) => {
+      state.broadcastMsgTemplate = e.target.value;
+      localStorage.setItem('wa_bc_template', state.broadcastMsgTemplate);
+      updateBroadcastSelectionDOM();
+    });
+
+    // Get currently filtered list of contacts
+    function getFilteredContacts() {
+      const query = elements.cari.value.toLowerCase().trim();
+      const selectedGroup = elements.grup.value;
+      
+      return state.contacts.filter(contact => {
+        const matchQuery = contact.nama.toLowerCase().includes(query) || (contact.url && contact.url.includes(query));
+        const matchGroup = !selectedGroup || contact.grup === selectedGroup;
+        const matchFav = !state.filterOnlyFavorites || state.favorites.includes(getContactId(contact));
+        return matchQuery && matchGroup && matchFav;
+      });
+    }
+
+    // Select/Deselect All buttons
+    elements.selectAllFilteredBtn.addEventListener('click', () => {
+      const filtered = getFilteredContacts();
+      filtered.forEach(c => {
+        const id = getContactId(c);
+        if (!state.selectedContacts.includes(id)) {
+          state.selectedContacts.push(id);
+        }
+      });
+      updateBroadcastSelectionDOM();
+      render();
+      showToast(`Memilih ${filtered.length} kontak`);
+    });
+
+    elements.clearSelectedBtn.addEventListener('click', () => {
+      state.selectedContacts = [];
+      updateBroadcastSelectionDOM();
+      render();
+      showToast('Semua pilihan dikosongkan', 'info');
+    });
+
+    // BROADCAST QUEUE SYSTEM LOGIC
+    elements.startBroadcastBtn.addEventListener('click', () => {
+      const template = elements.broadcastMessage.value.trim();
+      if (!template) {
+        showToast('Tulis pesan template terlebih dahulu!', 'error');
+        return;
+      }
+      if (state.selectedContacts.length === 0) {
+        showToast('Pilih setidaknya satu kontak!', 'error');
+        return;
+      }
+
+      // Build Queue
+      state.broadcastQueue = state.contacts.filter(c => state.selectedContacts.includes(getContactId(c)));
+      state.broadcastIndex = 0;
+
+      // Hide Setup, Show Playback UI
+      elements.bcSetupArea.classList.add('hidden');
+      elements.bcActiveArea.classList.remove('hidden');
+      
+      // Disable changing views during active broadcast to avoid mistakes
+      elements.tabDirectBtn.setAttribute('disabled', 'true');
+      elements.tabDirectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      persistBroadcastSession();
+      updateBroadcastQueueUI();
+      showToast('Sesi broadcast antrean dimulai!', 'success');
+    });
+
+    function stopBroadcast() {
+      state.broadcastQueue = [];
+      state.broadcastIndex = 0;
+      elements.bcActiveArea.classList.add('hidden');
+      elements.bcSetupArea.classList.remove('hidden');
+      
+      elements.tabDirectBtn.removeAttribute('disabled');
+      elements.tabDirectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      
+      persistBroadcastSession();
+      updateBroadcastSelectionDOM();
+      showToast('Sesi broadcast selesai / dihentikan', 'info');
+    }
+
+    elements.bcStopBtn.addEventListener('click', stopBroadcast);
+
+    function updateBroadcastQueueUI() {
+      const queueLen = state.broadcastQueue.length;
+      if (state.broadcastIndex >= queueLen) {
+        showToast('Hebat! Semua antrean pesan broadcast telah selesai.', 'success');
+        stopBroadcast();
+        return;
+      }
+
+      const currentContact = state.broadcastQueue[state.broadcastIndex];
+      const progressPercent = Math.round((state.broadcastIndex / queueLen) * 100);
+
+      // Progress bar & text
+      elements.bcProgressText.textContent = `${state.broadcastIndex} / ${queueLen} Terkirim`;
+      elements.bcProgressBar.style.width = `${progressPercent}%`;
+
+      // Current target details
+      elements.bcTargetName.textContent = currentContact.nama;
+      elements.bcTargetGroup.textContent = currentContact.grup || 'Umum';
+      elements.bcTargetIndex.textContent = `#${state.broadcastIndex + 1}`;
+
+      // Personalize message placeholder {nama}
+      const rawMsg = elements.broadcastMessage.value;
+      const personalizedMsg = rawMsg.replace(/{nama}/g, currentContact.nama);
+      elements.bcMessagePreview.textContent = personalizedMsg;
+    }
+
+    // Process single link execution and advance
+    elements.bcSendBtn.addEventListener('click', () => {
+      const currentContact = state.broadcastQueue[state.broadcastIndex];
+      const rawMsg = elements.broadcastMessage.value;
+      const personalizedMsg = encodeURIComponent(rawMsg.replace(/{nama}/g, currentContact.nama));
+      
+      // Parse phone from the spreadsheet URL if possible, otherwise construct a generic redirect
+      let targetUrl = currentContact.url;
+      if (personalizedMsg) {
+        // Extract original phone number or construct standard URL
+        let phone = '';
+        const match = currentContact.url.match(/(?:phone|send\?phone)=([0-9]+)/);
+        if (match && match[1]) {
+          phone = match[1];
+          targetUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${personalizedMsg}`;
+        } else {
+          // If URL lacks phone query parameter, append template
+          targetUrl = `${currentContact.url}&text=${personalizedMsg}`;
+        }
+      }
+
+      // Open WA Window
+      window.open(targetUrl, '_blank');
+
+      // Catat sebagai sudah dikirimi (lokal untuk badge UI), lalu kirim log ke Sheet,
+      // lalu lanjut & simpan progres
+      const contactId = getContactId(currentContact);
+      markContactSent(contactId);
+      logSentToSheet(contactId, currentContact.nama, currentContact.nomor);
+      state.broadcastIndex++;
+      persistBroadcastSession();
+      updateBroadcastQueueUI();
+    });
+
+    elements.bcSkipBtn.addEventListener('click', () => {
+      state.broadcastIndex++;
+      persistBroadcastSession();
+      updateBroadcastQueueUI();
+      showToast('Kontak dilewati', 'info');
+    });
+
+    // Render Function
+    function render() {
+      const query = elements.cari.value.toLowerCase().trim();
+      const selectedGroup = elements.grup.value;
+      
+      elements.clearSearch.classList.toggle('hidden', query === '');
+
+      let filtered = getFilteredContacts();
+
+      // Sort favorites to top, then alphabetical
+      filtered.sort((a, b) => {
+        const aFav = state.favorites.includes(getContactId(a)) ? 1 : 0;
+        const bFav = state.favorites.includes(getContactId(b)) ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+        return a.nama.localeCompare(b.nama);
+      });
+
+      // Show active filter helper badges
+      const hasActiveFilters = query !== '' || selectedGroup !== '' || state.filterOnlyFavorites;
+      if (hasActiveFilters) {
+        elements.activeFilterBadge.classList.remove('hidden');
+        let filterTexts = [];
+        if (query) filterTexts.push(`Pencarian "${query}"`);
+        if (selectedGroup) filterTexts.push(`Grup "${selectedGroup}"`);
+        if (state.filterOnlyFavorites) filterTexts.push('Hanya Favorit');
+        elements.activeFilterText.textContent = `Menampilkan hasil saringan: ${filterTexts.join(' + ')}`;
+      } else {
+        elements.activeFilterBadge.classList.add('hidden');
+      }
+
+      // Update Dashboard Metrics
+      elements.statTotal.textContent = state.contacts.length;
+      elements.statGroups.textContent = state.groups.length;
+      elements.statFavs.textContent = state.contacts.filter(c => state.favorites.includes(getContactId(c))).length;
+
+      // Handle Empty State
+      if (filtered.length === 0) {
+        elements.emptyState.classList.remove('hidden');
+        elements.list.innerHTML = '';
+        return;
+      }
+      elements.emptyState.classList.add('hidden');
+
+      // Populate Cards with Mode Check
+      elements.list.innerHTML = '';
+      filtered.forEach(c => {
+        const cid = getContactId(c);
+        const isFav = state.favorites.includes(cid);
+        const isSelected = state.selectedContacts.includes(cid);
+        const lastSent = state.sentLog[cid];
+        const sentToday = lastSent && (new Date(lastSent).toDateString() === new Date().toDateString());
+        const card = document.createElement('div');
+        
+        // Define card styling depending on selection states
+        let cardBgClass = 'bg-white dark:bg-brand-darkCard border-gray-100 dark:border-gray-800/60';
+        if (state.activeLeftTab === 'broadcast' && isSelected) {
+          cardBgClass = 'bg-brand-50/40 dark:bg-brand-darkInput/40 border-brand-500 dark:border-brand-500';
+        } else if (isFav) {
+          cardBgClass = 'border-amber-200 dark:border-amber-900/40 bg-amber-50/10 dark:bg-amber-950/5';
+        }
+
+        // Conditionally render selection checkbox for broadcast mode
+        const selectionCheckboxHtml = state.activeLeftTab === 'broadcast' 
+          ? `
+            <div class="mr-3 flex items-center justify-center">
+              <div class="w-5 h-5 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-brand-500 border-brand-500 text-white' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-brand-darkInput'}">
+                ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>' : ''}
+              </div>
+            </div>
+          ` 
+          : '';
+        
+        card.className = `p-4 rounded-2xl border ${cardBgClass} shadow-sm flex items-center justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group cursor-pointer`;
+        
+        // Bind selection click if in broadcast mode, otherwise default to inert layout
+        if (state.activeLeftTab === 'broadcast') {
+          card.onclick = () => toggleSelectContact(cid);
+        }
+
+        card.innerHTML = `
+          <div class="flex items-center min-w-0 flex-grow mr-4">
+            ${selectionCheckboxHtml}
+            <div class="min-w-0 flex-grow">
+              <div class="flex items-center space-x-2">
+                <h3 class="font-bold text-sm text-gray-800 dark:text-gray-100 truncate">${c.nama}</h3>
+                <button class="fav-toggle-btn text-gray-300 dark:text-gray-600 hover:text-amber-500 transition-colors" data-id="${cid}">
+                  <i data-lucide="star" class="w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : ''}"></i>
+                </button>
+                ${sentToday ? '<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">Terkirim hari ini</span>' : ''}
+              </div>
+              <span class="inline-block mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-brand-darkInput text-gray-500 dark:text-gray-400">
+                ${c.grup || 'Umum'}
+              </span>
+            </div>
+          </div>
+          
+          <div class="flex items-center space-x-1.5 shrink-0">
+            <button class="copy-btn p-2 bg-gray-50 dark:bg-brand-darkInput text-gray-400 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-500 hover:bg-gray-100 rounded-xl transition-all" data-url="${c.url}" title="Salin Tautan">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+            <a 
+              href="${c.url}" 
+              target="_blank" 
+              class="direct-wa-btn bg-brand-600 hover:bg-brand-700 text-white p-2 sm:px-3 sm:py-2 rounded-xl flex items-center gap-1.5 font-semibold text-xs tracking-wide shadow-sm shadow-brand-500/10 hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">WhatsApp</span>
+            </a>
+          </div>
+        `;
+        
+        elements.list.appendChild(card);
+      });
+
+      // Bind actions with stop propagation to avoid checkbox triggers
+      document.querySelectorAll('.fav-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          toggleFavorite(btn.getAttribute('data-id'), e);
+        });
+      });
+
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          copyLink(btn.getAttribute('data-url'), e);
+        });
+      });
+
+      document.querySelectorAll('.direct-wa-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent check state toggle on manual launch
+        });
+      });
+
+      lucide.createIcons();
+    }
+
+    // Direct Sending (Bypass Contacts)
+    elements.directSendForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let phoneInput = elements.directPhone.value.trim();
+      const messageInput = encodeURIComponent(elements.directMessage.value.trim());
+
+      phoneInput = phoneInput.replace(/[^0-9]/g, '');
+      if (phoneInput.startsWith('0')) {
+        phoneInput = '62' + phoneInput.substring(1);
+      } else if (!phoneInput.startsWith('62') && phoneInput.length > 0) {
+        phoneInput = '62' + phoneInput;
+      }
+
+      if (phoneInput.length < 8) {
+        showToast('Format nomor telepon salah atau terlalu pendek.', 'error');
+        return;
+      }
+
+      const waUrl = `https://api.whatsapp.com/send?phone=${phoneInput}&text=${messageInput}`;
+      
+      showToast('Membuka sesi obrolan WhatsApp...', 'success');
+      setTimeout(() => {
+        window.open(waUrl, '_blank');
+      }, 500);
+    });
+
+    // Filters Event Listeners
+    elements.cari.addEventListener('input', render);
+    elements.grup.addEventListener('change', render);
+    
+    elements.clearSearch.addEventListener('click', () => {
+      elements.cari.value = '';
+      render();
+    });
+
+    elements.onlyFavoritesBtn.addEventListener('click', () => {
+      state.filterOnlyFavorites = !state.filterOnlyFavorites;
+      elements.onlyFavoritesBtn.classList.toggle('text-amber-500', state.filterOnlyFavorites);
+      elements.onlyFavoritesBtn.classList.toggle('border-amber-400', state.filterOnlyFavorites);
+      elements.onlyFavoritesBtn.classList.toggle('bg-amber-50/20', state.filterOnlyFavorites);
+      elements.favFilterIcon.className = `w-5 h-5 ${state.filterOnlyFavorites ? 'fill-amber-400 text-amber-400' : ''}`;
+      render();
+    });
+
+    elements.resetFilters.addEventListener('click', () => {
+      elements.cari.value = '';
+      elements.grup.value = '';
+      state.filterOnlyFavorites = false;
+      elements.onlyFavoritesBtn.classList.remove('text-amber-500', 'border-amber-400', 'bg-amber-50/20');
+      elements.favFilterIcon.className = 'w-5 h-5';
+      render();
+      showToast('Semua penyaringan diatur ulang');
+    });
+
+    elements.refreshDataBtn.addEventListener('click', () => {
+      loadData(true);
+      showToast('Memperbarui data dari server...', 'info');
+    });
+
+    elements.closeErrorBtn.addEventListener('click', () => {
+      elements.errorPanel.classList.add('hidden');
+    });
+
+    // Populate saved broadcast message if exists
+    if (state.broadcastMsgTemplate) {
+      elements.broadcastMessage.value = state.broadcastMsgTemplate;
+    }
+
+    // App Initialization
+    initTheme();
+    loadData();
+
+    // Kalau ada sesi broadcast yang belum selesai (misal tab sempat ter-refresh), lanjutkan tampilannya
+    if (state.broadcastQueue.length > 0 && state.broadcastIndex < state.broadcastQueue.length) {
+      switchLeftTab('broadcast');
+      elements.bcSetupArea.classList.add('hidden');
+      elements.bcActiveArea.classList.remove('hidden');
+      elements.tabDirectBtn.setAttribute('disabled', 'true');
+      elements.tabDirectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      updateBroadcastQueueUI();
+      showToast('Melanjutkan sesi broadcast sebelumnya', 'info');
+    }
+  </script>
+</body>
+</html>
