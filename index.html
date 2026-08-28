@@ -63,7 +63,7 @@
           <i data-lucide="message-square" class="w-6 h-6"></i>
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">WA INSTAN</h1>
+          <h1 class="text-xl font-bold tracking-tight">BROADCAST</h1>
           <p class="text-xs text-brand-100 dark:text-gray-400">Akses Kontak dan Kirim Pesan Cepat</p>
         </div>
       </div>
@@ -80,7 +80,7 @@
         -->
         <!-- Google Sheet Button (Dipastikan terlihat dengan background semi-transparent hover) -->
         <a 
-          href="https://docs.google.com/spreadsheets/d/1RsZJ_flu3AYs0aCR-03fLodWLAuuXdyrlY6WbO-v6dc/edit" 
+          href="https://docs.google.com/spreadsheets/d/1D799nKiuiOoeCK51fnG_-do4MjO4QGvJcQkP_55x2YE/edit" 
           target="_blank" 
           rel="noopener noreferrer"
           class="p-2 bg-brand-700 dark:bg-brand-darkInput hover:bg-brand-800 dark:hover:bg-gray-700 rounded-lg transition-all text-white flex items-center justify-center gap-1.5 px-3" 
@@ -112,7 +112,7 @@
           <h2 class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Statistik Kontak</h2>
           <!-- Google Sheet Link -->
           <a 
-            href="https://docs.google.com/spreadsheets/d/1RsZJ_flu3AYs0aCR-03fLodWLAuuXdyrlY6WbO-v6dc/edit" 
+            href="https://docs.google.com/spreadsheets/d/1D799nKiuiOoeCK51fnG_-do4MjO4QGvJcQkP_55x2YE/edit" 
             target="_blank" 
             rel="noopener noreferrer"
             class="text-xs text-brand-600 dark:text-brand-500 hover:underline flex items-center gap-1 font-bold"
@@ -369,7 +369,7 @@
         <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5 shrink-0"></i>
         <div class="flex-grow">
           <h4 class="font-bold text-sm">Gagal Sinkronisasi Real-Time</h4>
-          <p class="text-xs mt-1">Sistem gagal mengambil data segar dari server. Anda sekarang berselancar menggunakan data lokal (offline cache).</p>
+          <p id="syncErrorMessage" class="text-xs mt-1">Sistem gagal mengambil data segar dari server. Anda sekarang berselancar menggunakan data lokal (offline cache).</p>
         </div>
         <button id="closeErrorBtn" class="text-red-400 hover:text-red-600">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -427,9 +427,9 @@
   <!-- Footer Area -->
   <footer class="bg-white dark:bg-brand-darkCard border-t border-gray-100 dark:border-gray-800 text-center py-6 text-xs text-gray-400 dark:text-gray-500 transition-colors mt-auto">
     <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <div>&copy; 2026 Launcher WhatsApp Premium. Hak Cipta Dilindungi.</div>
+      <div>&copy; 2026 Aplikasi Broadcast - Wartam SMPN 4 Majenang</div>
       <div class="flex items-center space-x-3">
-        <span class="flex items-center gap-1 text-emerald-500"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sinkronisasi Cloud Aktif</span>
+        <span id="syncStatus" class="flex items-center gap-1 text-emerald-500"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Belum tersinkron</span>
       </div>
     </div>
   </footer>
@@ -439,7 +439,7 @@
 
   <!-- Main JavaScript Logic -->
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzP7nEO5K8kahgbyEGgN4jO8JlBpSZvnHXozNjIOCG1rDQ913tezbah8FTH7eYcL8R_vQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyICxCorrWFl2hUIL6R8bsMGrGB03tGPPA1RWhP0q9tK0pGKDZ1qgxtindXAluRfMcV/exec';
 
     // Ambil ID unik kontak: pakai kolom ID asli dari sheet (dikirim sebagai c.id),
     // fallback ke nomor HP, lalu ke "nama|grup" kalau keduanya tidak ada.
@@ -451,6 +451,21 @@
         if (match && match[1]) return match[1];
       }
       return `${c.nama}|${c.grup || ''}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function safeWhatsAppUrl(url) {
+      return /^https:\/\/api\.whatsapp\.com\/send\/?\?phone=\d+(?:&|$)/.test(String(url || ''))
+        ? String(url)
+        : '#';
     }
 
     // Restore sesi broadcast yang belum selesai (misal kalau tab sempat ter-refresh)
@@ -540,6 +555,8 @@
       list: document.getElementById('list'),
       shimmerLoader: document.getElementById('shimmerLoader'),
       errorPanel: document.getElementById('errorPanel'),
+      syncErrorMessage: document.getElementById('syncErrorMessage'),
+      syncStatus: document.getElementById('syncStatus'),
       closeErrorBtn: document.getElementById('closeErrorBtn'),
       
       // Stats
@@ -592,6 +609,12 @@
       refreshIcon: document.getElementById('refreshIcon'),
       toastContainer: document.getElementById('toastContainer')
     };
+
+    function setSyncStatus(isoDate) {
+      const date = new Date(isoDate);
+      if (Number.isNaN(date.getTime())) return;
+      elements.syncStatus.textContent = 'Sinkron terakhir: ' + date.toLocaleString('id-ID');
+    }
 
     // Apply Theme on load
     function initTheme() {
@@ -715,12 +738,19 @@
       const cachedGroups = localStorage.getItem('wa_cached_groups');
 
       if (cachedContacts && cachedGroups && !isRefresh) {
-        state.contacts = JSON.parse(cachedContacts);
-        state.groups = JSON.parse(cachedGroups);
-        migrateFavorites();
-        populateGroupsDropdown();
-        render();
-        elements.shimmerLoader.classList.add('hidden');
+        try {
+          state.contacts = JSON.parse(cachedContacts);
+          state.groups = JSON.parse(cachedGroups);
+          migrateFavorites();
+          populateGroupsDropdown();
+          render();
+          elements.shimmerLoader.classList.add('hidden');
+        } catch (error) {
+          localStorage.removeItem('wa_cached_contacts');
+          localStorage.removeItem('wa_cached_groups');
+          state.contacts = [];
+          state.groups = [];
+        }
       }
 
       try {
@@ -738,12 +768,14 @@
           migrateFavorites();
           populateGroupsDropdown();
           render();
+          setSyncStatus(data.syncedAt || new Date().toISOString());
         } else {
-          throw new Error('Server returned false success status');
+          throw new Error(data.message || 'Server returned false success status');
         }
       } catch (error) {
         console.error('Error fetching API:', error);
         elements.errorPanel.classList.remove('hidden');
+        elements.syncErrorMessage.textContent = 'Detail: ' + (error.message || 'Gagal menghubungi server.');
         
         if (!state.contacts.length) {
           elements.list.innerHTML = `
@@ -832,7 +864,7 @@
       const selectedGroup = elements.grup.value;
       
       return state.contacts.filter(contact => {
-        const matchQuery = contact.nama.toLowerCase().includes(query) || (contact.url && contact.url.includes(query));
+        const matchQuery = String(contact.nama || '').toLowerCase().includes(query) || (contact.url && contact.url.includes(query));
         const matchGroup = !selectedGroup || contact.grup === selectedGroup;
         const matchFav = !state.filterOnlyFavorites || state.favorites.includes(getContactId(contact));
         return matchQuery && matchGroup && matchFav;
@@ -986,7 +1018,7 @@
         const aFav = state.favorites.includes(getContactId(a)) ? 1 : 0;
         const bFav = state.favorites.includes(getContactId(b)) ? 1 : 0;
         if (aFav !== bFav) return bFav - aFav;
-        return a.nama.localeCompare(b.nama);
+        return String(a.nama || '').localeCompare(String(b.nama || ''));
       });
 
       // Show active filter helper badges
@@ -1019,6 +1051,10 @@
       elements.list.innerHTML = '';
       filtered.forEach(c => {
         const cid = getContactId(c);
+        const contactName = String(c.nama || '-');
+        const contactGroup = String(c.grup || 'Umum');
+        const contactUrl = safeWhatsAppUrl(c.url);
+        const safeId = escapeHtml(cid);
         const isFav = state.favorites.includes(cid);
         const isSelected = state.selectedContacts.includes(cid);
         const lastSent = state.sentLog[cid];
@@ -1056,29 +1092,29 @@
             ${selectionCheckboxHtml}
             <div class="min-w-0 flex-grow">
               <div class="flex items-center space-x-2">
-                <h3 class="font-bold text-sm text-gray-800 dark:text-gray-100 truncate">${c.nama}</h3>
-                <button class="fav-toggle-btn text-gray-300 dark:text-gray-600 hover:text-amber-500 transition-colors" data-id="${cid}">
+                <h3 class="font-bold text-sm text-gray-800 dark:text-gray-100 truncate">${escapeHtml(contactName)}</h3>
+                <button class="fav-toggle-btn text-gray-300 dark:text-gray-600 hover:text-amber-500 transition-colors" data-id="${safeId}">
                   <i data-lucide="star" class="w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : ''}"></i>
                 </button>
-                ${sentToday ? '<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">Terkirim hari ini</span>' : ''}
+                ${sentToday ? '<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">Dibuka hari ini</span>' : ''}
               </div>
               <span class="inline-block mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-brand-darkInput text-gray-500 dark:text-gray-400">
-                ${c.grup || 'Umum'}
+                ${escapeHtml(contactGroup)}
               </span>
             </div>
           </div>
           
           <div class="flex items-center space-x-1.5 shrink-0">
-            <button class="copy-btn p-2 bg-gray-50 dark:bg-brand-darkInput text-gray-400 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-500 hover:bg-gray-100 rounded-xl transition-all" data-url="${c.url}" title="Salin Tautan">
+            <button class="copy-btn p-2 bg-gray-50 dark:bg-brand-darkInput text-gray-400 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-500 hover:bg-gray-100 rounded-xl transition-all" data-url="${escapeHtml(contactUrl)}" title="Salin Tautan">
               <i data-lucide="copy" class="w-4 h-4"></i>
             </button>
             <a 
-              href="${c.url}" 
+              href="${escapeHtml(contactUrl)}" 
               target="_blank" 
               class="direct-wa-btn bg-brand-600 hover:bg-brand-700 text-white p-2 sm:px-3 sm:py-2 rounded-xl flex items-center gap-1.5 font-semibold text-xs tracking-wide shadow-sm shadow-brand-500/10 hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all"
             >
               <i data-lucide="message-circle" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">WhatsApp</span>
+              <span class="hidden sm:inline">Kirim</span>
             </a>
           </div>
         `;
@@ -1121,7 +1157,7 @@
         phoneInput = '62' + phoneInput;
       }
 
-      if (phoneInput.length < 8) {
+      if (phoneInput.length < 8 || phoneInput.length > 15) {
         showToast('Format nomor telepon salah atau terlalu pendek.', 'error');
         return;
       }
